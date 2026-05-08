@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Smart To-Do List</title>
+  <style>
+    :root {
+      --bg-color: #eef7ff;
+      --text-color: #2c3e50;
+      --card-bg: #ffffff;
+      --hover-bg: #f0faff;
+      --shadow: rgba(0,0,0,0.1);
+    }
+
+    body.dark {
+      --bg-color: #121212;
+      --text-color: #ffffff;
+      --card-bg: #1e1e1e;
+      --hover-bg: #2c2c2c;
+      --shadow: rgba(255,255,255,0.1);
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      text-align: center;
+      padding: 40px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    h1 {
+      margin-bottom: 25px;
+    }
+
+    .add-section {
+      background-color: var(--card-bg);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px var(--shadow);
+      display: inline-block;
+      transition: 0.3s ease;
+    }
+
+    .add-section:hover {
+      background-color: var(--hover-bg);
+      transform: scale(1.02);
+    }
+
+    input[type="text"] {
+      padding: 12px;
+      width: 240px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      transition: 0.3s ease;
+    }
+
+    input[type="text"]:focus {
+      border-color: #4CAF50;
+      outline: none;
+      box-shadow: 0 0 5px #4CAF50;
+    }
+
+    button {
+      padding: 12px 18px;
+      font-size: 16px;
+      cursor: pointer;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      margin-left: 8px;
+      transition: 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #45a049;
+      transform: scale(1.05);
+    }
+
+    #toggleDark {
+      margin-top: 10px;
+      background-color: #333;
+      color: #fff;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-top: 30px;
+    }
+
+    li {
+      background-color: var(--card-bg);
+      margin: 10px auto;
+      padding: 12px 15px;
+      width: 350px;
+      border-radius: 8px;
+      box-shadow: 0 3px 6px var(--shadow);
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      transition: 0.3s;
+      animation: fadeInUp 0.4s ease;
+    }
+
+    li:hover {
+      background-color: var(--hover-bg);
+      transform: scale(1.02);
+    }
+
+    .todo-text {
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .timestamp {
+      font-size: 12px;
+      color: #888;
+      margin-top: 5px;
+    }
+
+    .delete-btn {
+      align-self: flex-end;
+      background-color: #e74c3c;
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: 0.3s;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+      transform: scale(1.05);
+    }
+
+    @keyframes fadeInUp {
+      0% { opacity: 0; transform: translateY(20px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📝 Smart To-Do List</h1>
+
+  <div class="add-section">
+    <input type="text" id="todoInput" placeholder="Enter a new task">
+    <button onclick="addTodo()">Add</button>
+  </div>
+
+  <br><br>
+  <button id="toggleDark" onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
+
+  <ul id="todoList"></ul>
+
+  <script>
+    let todos = [];
+
+    
+    if (localStorage.getItem("darkMode") === "true") {
+      document.body.classList.add("dark");
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+      localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+    }
+
+    window.onload = () => {
+      const saved = localStorage.getItem("todos");
+      if (saved) {
+        todos = JSON.parse(saved);
+        displayTodos();
+      }
+      setInterval(displayTodos, 60000); 
+    };
+
+    function addTodo() {
+      const input = document.getElementById("todoInput");
+      const newTodo = input.value.trim();
+
+      if (newTodo !== "") {
+        const time = new Date().toISOString(); 
+        todos.push({ text: newTodo, time: time });
+        input.value = "";
+        saveTodos();
+        displayTodos();
+      }
+    }
+
+    function deleteTodo(index) {
+      todos.splice(index, 1);
+      saveTodos();
+      displayTodos();
+    }
+
+    function saveTodos() {
+      localStorage.setItem("todos", JSON.stringify(todos));
+    }
+
+    function timeAgo(dateString) {
+      const now = new Date();
+      const added = new Date(dateString);
+      const seconds = Math.floor((now - added) / 1000);
+
+      if (seconds < 60) return `Just now`;
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      const days = Math.floor(hours / 24);
+      return `${days} day${days > 1 ? 's' : ''} ago`;
+    }
+
+    function formatTime(dateString) {
+      const d = new Date(dateString);
+      let hours = d.getHours();
+      let minutes = d.getMinutes();
+      let ampm = hours >= 12 ? 'PM' : 'AM';
+
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      minutes = minutes < 10 ? '0' + minutes : minutes;
+
+      return `${hours}:${minutes} ${ampm}`;
+    }
+
+    function displayTodos() {
+      const list = document.getElementById("todoList");
+      list.innerHTML = "";
+
+      todos.forEach((todo, index) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+          <div class="todo-text">${todo.text}</div>
+          <div class="timestamp">Added at: ${formatTime(todo.time)} (${timeAgo(todo.time)})</div>
+          <button class="delete-btn" onclick="deleteTodo(${index})">Delete</button>
+        `;
+        list.appendChild(li);
+      });
+    }
+  </script>
+
+</body>
+</html>
+
+
+
+
+
